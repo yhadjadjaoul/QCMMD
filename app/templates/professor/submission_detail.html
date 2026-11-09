@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('details') }} - {{ submission.student.username }}{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="{{ url_for('professor.view_submissions', quiz_id=submission.quiz.id) }}" class="btn btn-outline-secondary btn-sm mb-3">
+        <i class="bi bi-arrow-left me-1"></i>Back to submissions
+    </a>
+    <h2 class="fw-bold">{{ submission.quiz.title }}</h2>
+    <div class="lead">
+        Student: <strong>{{ submission.student.username }}</strong> ({{ submission.student.email }})
+    </div>
+    <div class="mt-2">
+        Score: <span class="badge bg-primary fs-5">{{ submission.total_score }} / {{ submission.max_score }}</span>
+        <span class="text-muted ms-3">Submitted on {{ submission.submitted_at.strftime('%Y-%m-%d %H:%M:%S') }}</span>
+    </div>
+</div>
+
+{% for ans in submission.answers %}
+<div class="card main-card mb-3 p-3">
+    <div class="d-flex justify-content-between align-items-start">
+        <h5 class="fw-bold">{{ ans.question.title }}</h5>
+        <span class="badge bg-info text-dark">
+            {{ ans.score_awarded }} / {{ ans.question.max_score }} pts
+        </span>
+    </div>
+
+    {% if ans.question.subtext %}
+    <p class="text-muted mb-2">{{ ans.question.subtext }}</p>
+    {% endif %}
+
+    {% if ans.question.question_type == 'choice' %}
+        <div class="list-group my-2">
+            {% set sel_ids = ans.selected_choice_ids.split(',') if ans.selected_choice_ids else [] %}
+            {% for choice in ans.question.choices %}
+                {% set is_selected = (choice.id|string in sel_ids) %}
+                <div class="list-group-item d-flex justify-content-between align-items-center {% if is_selected and choice.is_correct %}list-group-item-success{% elif is_selected and not choice.is_correct %}list-group-item-danger{% elif choice.is_correct %}list-group-item-light{% endif %}">
+                    <div>
+                        {% if is_selected %}
+                            <i class="bi bi-check-circle-fill me-2 {% if choice.is_correct %}text-success{% else %}text-danger{% endif %}"></i>
+                        {% else %}
+                            <i class="bi bi-circle me-2 text-muted"></i>
+                        {% endif %}
+                        {{ choice.text }}
+                    </div>
+                    <div>
+                        {% if choice.is_correct %}
+                            <span class="badge bg-success">{{ _('correct_answer') }}</span>
+                        {% endif %}
+                        {% if is_selected %}
+                            <span class="badge bg-secondary">{{ _('your_answer') }}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="p-3 bg-light rounded border mb-2">
+            <strong>Student answer:</strong>
+            <p class="mb-0 mt-1">{{ ans.text_response or 'No answer provided.' }}</p>
+        </div>
+    {% endif %}
+
+    {% if ans.question.hint %}
+    <div class="hint-card">
+        <small class="fw-bold text-primary"><i class="bi bi-lightbulb me-1"></i>{{ _('hint') }}:</small>
+        <span class="small">{{ ans.question.hint }}</span>
+    </div>
+    {% endif %}
+</div>
+{% endfor %}
+{% endblock %}

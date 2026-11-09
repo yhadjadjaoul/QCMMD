@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('create_qcm') }} - QCM Platform{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card main-card p-4">
+            <h3 class="fw-bold text-primary mb-3">
+                <i class="bi bi-file-earmark-code me-2"></i>{{ _('create_qcm') }}
+            </h3>
+            <p class="text-muted">
+                You can upload a <code>.md</code> file or paste markdown syntax directly below.
+            </p>
+
+            <form method="POST" action="{{ url_for('professor.import_qcm') }}" enctype="multipart/form-data">
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">{{ _('upload_file') }}</label>
+                    <input class="form-control" type="file" name="md_file" accept=".md,.markdown,.txt">
+                </div>
+
+                <div class="d-flex align-items-center my-3">
+                    <hr class="flex-grow-1">
+                    <span class="mx-3 text-muted fw-bold">{{ _('or_paste') }}</span>
+                    <hr class="flex-grow-1">
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold">{{ _('markdown_source') }}</label>
+                    <textarea name="markdown_text" class="form-control font-monospace" rows="12" placeholder="# Title of the QCM
+
+## Part 1
+### Question 1 [score: 2]
+> Hint: Helpful hint for students
+- [x] Correct answer
+- [ ] Incorrect answer
+- [ ] Incorrect answer 2
+
+### Question 2
+Explain your solution.
+- [t]"></textarea>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('professor.dashboard') }}" class="btn btn-outline-secondary">
+                        {{ _('back_to_dashboard') }}
+                    </a>
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-check2-circle me-1"></i>{{ _('import_btn') }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

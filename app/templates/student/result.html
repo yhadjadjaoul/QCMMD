@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('quiz_results') }} - {{ submission.quiz.title }}{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="card main-card p-4 mb-4 text-center">
+            <h3 class="fw-bold mb-1">{{ _('congratulations') }}</h3>
+            <p class="text-muted">{{ submission.quiz.title }}</p>
+
+            <div class="my-3">
+                <span class="display-4 fw-bold text-primary">{{ submission.total_score }}</span>
+                <span class="fs-4 text-muted"> / {{ submission.max_score }}</span>
+            </div>
+
+            {% set pct = (submission.total_score / submission.max_score * 100) if submission.max_score > 0 else 0 %}
+            <div class="progress mb-3 mx-auto" style="height: 24px; max-width: 400px;">
+                <div class="progress-bar {% if pct >= 50 %}bg-success{% else %}bg-warning{% endif %}" role="progressbar" style="width: {{ pct }}%;">
+                    {{ pct|round(1) }}%
+                </div>
+            </div>
+
+            <div>
+                <a href="{{ url_for('student.dashboard') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left me-1"></i>{{ _('back_to_dashboard') }}
+                </a>
+            </div>
+        </div>
+
+        <h4 class="fw-bold mb-3">Detailed Review</h4>
+
+        {% for ans in submission.answers %}
+        <div class="card main-card mb-3 p-3">
+            <div class="d-flex justify-content-between align-items-start">
+                <h5 class="fw-bold">{{ ans.question.title }}</h5>
+                <span class="badge {% if ans.score_awarded > 0 %}bg-success{% else %}bg-danger{% endif %} fs-6">
+                    {{ ans.score_awarded }} / {{ ans.question.max_score }} pts
+                </span>
+            </div>
+
+            {% if ans.question.subtext %}
+            <p class="text-muted mb-2">{{ ans.question.subtext }}</p>
+            {% endif %}
+
+            {% if ans.question.question_type == 'choice' %}
+                <div class="list-group my-2">
+                    {% set sel_ids = ans.selected_choice_ids.split(',') if ans.selected_choice_ids else [] %}
+                    {% for choice in ans.question.choices %}
+                        {% set is_selected = (choice.id|string in sel_ids) %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center {% if is_selected and choice.is_correct %}list-group-item-success{% elif is_selected and not choice.is_correct %}list-group-item-danger{% elif choice.is_correct %}list-group-item-light{% endif %}">
+                            <div>
+                                {% if is_selected %}
+                                    <i class="bi bi-check-circle-fill me-2 {% if choice.is_correct %}text-success{% else %}text-danger{% endif %}"></i>
+                                {% else %}
+                                    <i class="bi bi-circle me-2 text-muted"></i>
+                                {% endif %}
+                                {{ choice.text }}
+                            </div>
+                            <div>
+                                {% if choice.is_correct %}
+                                    <span class="badge bg-success">{{ _('correct_answer') }}</span>
+                                {% endif %}
+                                {% if is_selected %}
+                                    <span class="badge bg-secondary">{{ _('your_answer') }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="p-3 bg-light rounded border mb-2">
+                    <strong>{{ _('your_answer') }}:</strong>
+                    <p class="mb-0 mt-1">{{ ans.text_response or 'No answer provided.' }}</p>
+                </div>
+            {% endif %}
+
+            {% if ans.question.hint %}
+            <div class="hint-card">
+                <div class="fw-bold text-primary mb-1">
+                    <i class="bi bi-lightbulb me-1"></i>{{ _('explanation_hint') }}:
+                </div>
+                <div>{{ ans.question.hint }}</div>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

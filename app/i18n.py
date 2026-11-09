@@ -1,0 +1,137 @@
+from flask import session, request
+
+TRANSLATIONS = {
+    'en': {
+        'platform_title': 'QCM Alchemy',
+        'login': 'Log In',
+        'register': 'Sign Up',
+        'logout': 'Log Out',
+        'email': 'Email',
+        'username': 'Username',
+        'password': 'Password',
+        'role': 'Role',
+        'student': 'Student',
+        'professor': 'Professor',
+        'welcome': 'Welcome',
+        'language': 'Language',
+        'join_qcm': 'Join a QCM',
+        'enter_code': 'Enter QCM Code',
+        'start_quiz': 'Start Quiz',
+        'create_qcm': 'Create / Import QCM',
+        'my_qcms': 'My QCMs',
+        'submissions': 'Submissions',
+        'quiz_title': 'Quiz Title',
+        'status': 'Status',
+        'actions': 'Actions',
+        'open': 'Open',
+        'closed': 'Closed',
+        'toggle_status': 'Toggle Status',
+        'view_results': 'View Results',
+        'delete': 'Delete',
+        'markdown_source': 'Markdown Source',
+        'upload_file': 'Upload Markdown File (.md)',
+        'or_paste': 'Or paste markdown here',
+        'import_btn': 'Import QCM',
+        'score': 'Score',
+        'max_score': 'Max Score',
+        'hint': 'Hint',
+        'hints': 'Hints',
+        'submit': 'Submit',
+        'submitted_at': 'Submitted At',
+        'student_name': 'Student',
+        'details': 'Details',
+        'export_csv': 'Export CSV',
+        'question': 'Question',
+        'your_answer': 'Your Answer',
+        'correct_answer': 'Correct Answer',
+        'explanation_hint': 'Hint / Explanation',
+        'points': 'Points',
+        'quiz_results': 'Quiz Results',
+        'congratulations': 'You have completed the quiz!',
+        'back_to_dashboard': 'Back to Dashboard',
+        'quiz_closed_message': 'This QCM is currently closed by the professor.',
+        'invalid_code': 'Invalid QCM code.',
+        'already_submitted': 'You have already submitted this QCM.',
+        'import_success': 'QCM successfully imported!',
+        'import_error': 'Failed to import QCM: ',
+        'register_success': 'Account created successfully! Please log in.',
+        'invalid_credentials': 'Invalid email or password.',
+    },
+    'fr': {
+        'platform_title': 'QCM Alchemy',
+        'login': 'Connexion',
+        'register': 'Inscription',
+        'logout': 'Déconnexion',
+        'email': 'Adresse email',
+        'username': 'Nom d\'utilisateur',
+        'password': 'Mot de passe',
+        'role': 'Rôle',
+        'student': 'Élève',
+        'professor': 'Enseignant',
+        'welcome': 'Bienvenue',
+        'language': 'Langue',
+        'join_qcm': 'Rejoindre un QCM',
+        'enter_code': 'Code du QCM',
+        'start_quiz': 'Démarrer le QCM',
+        'create_qcm': 'Créer / Importer un QCM',
+        'my_qcms': 'Mes QCMs',
+        'submissions': 'Copies reçues',
+        'quiz_title': 'Titre du QCM',
+        'status': 'Statut',
+        'actions': 'Actions',
+        'open': 'Ouvert',
+        'closed': 'Fermé',
+        'toggle_status': 'Changer le statut',
+        'view_results': 'Voir les résultats',
+        'delete': 'Supprimer',
+        'markdown_source': 'Source Markdown',
+        'upload_file': 'Téléverser un fichier Markdown (.md)',
+        'or_paste': 'Ou collez le markdown ici',
+        'import_btn': 'Importer le QCM',
+        'score': 'Note',
+        'max_score': 'Note maximale',
+        'hint': 'Indice / Aide',
+        'hints': 'Indices',
+        'submit': 'Valider et soumettre',
+        'submitted_at': 'Date de soumission',
+        'student_name': 'Élève',
+        'details': 'Détails',
+        'export_csv': 'Exporter en CSV',
+        'question': 'Question',
+        'your_answer': 'Votre réponse',
+        'correct_answer': 'Bonne réponse',
+        'explanation_hint': 'Indice / Solution',
+        'points': 'Points',
+        'quiz_results': 'Résultats du QCM',
+        'congratulations': 'Vous avez terminé le QCM !',
+        'back_to_dashboard': 'Retour au tableau de bord',
+        'quiz_closed_message': 'Ce QCM est actuellement fermé par l\'enseignant.',
+        'invalid_code': 'Code de QCM invalide.',
+        'already_submitted': 'Vous avez déjà répondu à ce QCM.',
+        'import_success': 'QCM importé avec succès !',
+        'import_error': 'Erreur lors de l\'import du QCM : ',
+        'register_success': 'Compte créé avec succès ! Connectez-vous.',
+        'invalid_credentials': 'Email ou mot de passe incorrect.',
+    }
+}
+
+def get_locale():
+    # Priority: session -> cookie -> request headers -> default 'en'
+    if 'locale' in session:
+        return session['locale']
+    cookie_lang = request.cookies.get('locale') if request else None
+    if cookie_lang in ('en', 'fr'):
+        return cookie_lang
+    return 'en'
+
+def set_locale(lang):
+    if lang in ('en', 'fr'):
+        session['locale'] = lang
+
+def translate(key, **kwargs):
+    lang = get_locale()
+    locale_dict = TRANSLATIONS.get(lang, TRANSLATIONS['en'])
+    msg = locale_dict.get(key, TRANSLATIONS['en'].get(key, key))
+    if kwargs:
+        msg = msg.format(**kwargs)
+    return msg

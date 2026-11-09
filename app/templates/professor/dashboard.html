@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}{{ _('my_qcms') }} - QCM Platform{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h2 class="fw-bold mb-1">{{ _('my_qcms') }}</h2>
+        <p class="text-muted">{{ _('welcome') }}, {{ current_user.username }}!</p>
+    </div>
+    <a href="{{ url_for('professor.import_qcm') }}" class="btn btn-primary">
+        <i class="bi bi-cloud-arrow-up-fill me-1"></i>{{ _('create_qcm') }}
+    </a>
+</div>
+
+{% if qcms %}
+<div class="card main-card overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>{{ _('enter_code') }}</th>
+                    <th>{{ _('quiz_title') }}</th>
+                    <th>Questions</th>
+                    <th>{{ _('submissions') }}</th>
+                    <th>{{ _('status') }}</th>
+                    <th class="text-end">{{ _('actions') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for q in qcms %}
+                <tr>
+                    <td>
+                        <span class="badge bg-dark fs-6">{{ q.code }}</span>
+                    </td>
+                    <td>
+                        <strong>{{ q.title }}</strong>
+                        {% if q.description %}
+                        <div class="small text-muted text-truncate" style="max-width: 300px;">{{ q.description }}</div>
+                        {% endif %}
+                    </td>
+                    <td>{{ q.questions|length }}</td>
+                    <td>
+                        <span class="badge bg-secondary">{{ q.submissions|length }}</span>
+                    </td>
+                    <td>
+                        {% if q.is_open %}
+                        <span class="badge bg-success">{{ _('open') }}</span>
+                        {% else %}
+                        <span class="badge bg-danger">{{ _('closed') }}</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <a href="{{ url_for('professor.toggle_status', quiz_id=q.id) }}" class="btn btn-sm btn-outline-warning me-1">
+                            {{ _('toggle_status') }}
+                        </a>
+                        <a href="{{ url_for('professor.view_submissions', quiz_id=q.id) }}" class="btn btn-sm btn-outline-info me-1">
+                            {{ _('view_results') }}
+                        </a>
+                        <form method="POST" action="{{ url_for('professor.delete_quiz', quiz_id=q.id) }}" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this QCM?');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="card main-card p-5 text-center">
+    <div class="mb-3">
+        <i class="bi bi-file-earmark-text text-muted" style="font-size: 3rem;"></i>
+    </div>
+    <h4 class="fw-bold">No QCM created yet</h4>
+    <p class="text-muted">Import your first QCM from Markdown to share with your students.</p>
+    <div>
+        <a href="{{ url_for('professor.import_qcm') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i>{{ _('create_qcm') }}
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
