@@ -17,6 +17,7 @@ class User(UserMixin, db.Model):
 
     quizzes = db.relationship('Quiz', backref='author', lazy=True, cascade='all, delete-orphan')
     submissions = db.relationship('Submission', backref='student', lazy=True, cascade='all, delete-orphan')
+    created_access_codes = db.relationship('StudentAccessCode', backref='creator', foreign_keys='StudentAccessCode.created_by_id', lazy=True, cascade='all, delete-orphan')
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -27,6 +28,19 @@ class User(UserMixin, db.Model):
     @property
     def is_professor(self):
         return self.role == 'professor'
+
+
+class StudentAccessCode(db.Model):
+    __tablename__ = 'student_access_codes'
+
+    id = db.Column(db.Integer, primary_key=True)
+    code = db.Column(db.String(32), unique=True, nullable=False, index=True)
+    is_used = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+    used_by_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=True)
+
+    used_by = db.relationship('User', foreign_keys=[used_by_id], backref='used_access_code')
 
 
 class Quiz(db.Model):

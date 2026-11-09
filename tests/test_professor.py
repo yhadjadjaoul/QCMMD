@@ -27,7 +27,7 @@ def test_professor_import_markdown(app_and_client):
     app, client = app_and_client
 
     # Log in as professor
-    client.post('/auth/login', data={'email': 'prof1@test.com', 'password': 'pass123'}, follow_redirects=True)
+    client.post('/auth/login', data={'email': 'prof1@test.com', 'password': 'pass123', 'captcha': 'TEST_CAPTCHA'}, follow_redirects=True)
 
     md_content = """# Biology Quiz
 ## Cellular Biology
@@ -55,7 +55,7 @@ def test_professor_import_markdown(app_and_client):
 def test_professor_toggle_and_csv_export(app_and_client):
     app, client = app_and_client
 
-    client.post('/auth/login', data={'email': 'prof1@test.com', 'password': 'pass123'}, follow_redirects=True)
+    client.post('/auth/login', data={'email': 'prof1@test.com', 'password': 'pass123', 'captcha': 'TEST_CAPTCHA'}, follow_redirects=True)
 
     # Import
     client.post('/professor/import', data={

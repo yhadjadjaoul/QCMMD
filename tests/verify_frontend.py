@@ -1,7 +1,37 @@
 import time
 from playwright.sync_api import sync_playwright
+from app import create_app, db
+from app.models import User, StudentAccessCode
+
+def setup_demo_users():
+    app = create_app()
+    with app.app_context():
+        # Clean users if any
+        User.query.delete()
+        StudentAccessCode.query.delete()
+        db.session.commit()
+
+        # Create Professor
+        prof = User(username="prof_demo", email="prof@demo.com", role="professor")
+        prof.set_password("password123")
+        db.session.add(prof)
+        db.session.commit()
+
+        # Create Student
+        code = StudentAccessCode(code="STU-DEMO1234", created_by_id=prof.id, is_used=True)
+        db.session.add(code)
+        db.session.flush()
+
+        student = User(username="student_demo", email="student@demo.com", role="student")
+        student.set_password("password123")
+        db.session.add(student)
+        db.session.flush()
+        code.used_by_id = student.id
+        db.session.commit()
 
 def run():
+    setup_demo_users()
+
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         context = browser.new_context(viewport={"width": 1280, "height": 800})
@@ -22,6 +52,7 @@ def run():
         # 2. Login as Professor
         page.fill('input[name="email"]', "prof@demo.com")
         page.fill('input[name="password"]', "password123")
+        page.fill('input[name="captcha"]', "TEST_CAPTCHA")
         page.click('button[type="submit"]')
         page.wait_for_url("**/professor/dashboard")
 
@@ -51,6 +82,10 @@ Un QCM complet pour évaluer les compétences.
         page.click('button[type="submit"]')
         page.wait_for_url("**/professor/dashboard")
 
+        # Generate a student code from dashboard
+        page.click('button:has-text("Generate Access Code(s)")')
+        page.wait_for_timeout(500)
+
         # Capture Professor Dashboard Screenshot
         page.screenshot(path="tests/professor_dashboard.png")
 
@@ -65,6 +100,7 @@ Un QCM complet pour évaluer les compétences.
         # 4. Login as Student
         page.fill('input[name="email"]', "student@demo.com")
         page.fill('input[name="password"]', "password123")
+        page.fill('input[name="captcha"]', "TEST_CAPTCHA")
         page.click('button[type="submit"]')
         page.wait_for_url("**/student/dashboard")
 

@@ -1,8 +1,10 @@
 import csv
 import io
+import secrets
+import string
 from flask import Blueprint, render_template, redirect, url_for, request, flash, Response, abort
 from flask_login import login_required, current_user
-from app.models import db, Quiz, Question, Choice, Submission, AnswerSubmission
+from app.models import db, Quiz, Question, Choice, Submission, AnswerSubmission, StudentAccessCode
 from app.services.parser import parse_markdown_to_quiz
 from app.i18n import translate as _
 
@@ -17,7 +19,29 @@ def require_professor():
 @professor_bp.route('/dashboard')
 def dashboard():
     qcms = Quiz.query.filter_by(author_id=current_user.id).order_by(Quiz.created_at.desc()).all()
-    return render_template('professor/dashboard.html', qcms=qcms)
+    student_codes = StudentAccessCode.query.filter_by(created_by_id=current_user.id).order_by(StudentAccessCode.created_at.desc()).all()
+    return render_template('professor/dashboard.html', qcms=qcms, student_codes=student_codes)
+
+@professor_bp.route('/student-codes/generate', methods=['POST'])
+def generate_student_code():
+    num_codes = int(request.form.get('count', 1))
+    num_codes = max(1, min(num_codes, 50))  # generate between 1 and 50 codes
+    for i in range(num_codes):
+        code = 'STU-' + ''.join(secrets.choice(string.ascii_uppercase + string.digits) for j in range(8))
+        student_code = StudentAccessCode(code=code, created_by_id=current_user.id)
+        db.session.add(student_code)
+    db.session.commit()
+    msg = _('codes_generated_success', count=num_codes) if num_codes > 1 else _('code_generated_success')
+    flash(msg, 'success')
+    return redirect(url_for('professor.dashboard'))
+
+@professor_bp.route('/student-codes/<int:code_id>/delete', methods=['POST'])
+def delete_student_code(code_id):
+    student_code = StudentAccessCode.query.filter_by(id=code_id, created_by_id=current_user.id).first_or_404()
+    db.session.delete(student_code)
+    db.session.commit()
+    flash(_('code_deleted_success'), 'info')
+    return redirect(url_for('professor.dashboard'))
 
 @professor_bp.route('/import', methods=['GET', 'POST'])
 def import_qcm():
