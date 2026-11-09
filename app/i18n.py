@@ -56,6 +56,14 @@ TRANSLATIONS = {
         'import_error': 'Failed to import QCM: ',
         'register_success': 'Account created successfully! Please log in.',
         'invalid_credentials': 'Invalid email or password.',
+        'pending_review': 'Pending Review',
+        'graded': 'Graded',
+        'grade_question': 'Grade Question',
+        'save_grade': 'Save Grade',
+        'grade_updated_success': 'Grade successfully updated!',
+        'reference_answer': 'Reference / Expected Answer',
+        'student_answer': 'Student Answer',
+        'no_answer_provided': 'No answer provided.',
     },
     'fr': {
         'platform_title': 'QCM Alchemy',
@@ -112,6 +120,14 @@ TRANSLATIONS = {
         'import_error': 'Erreur lors de l\'import du QCM : ',
         'register_success': 'Compte créé avec succès ! Connectez-vous.',
         'invalid_credentials': 'Email ou mot de passe incorrect.',
+        'pending_review': 'En attente de correction',
+        'graded': 'Corrigé',
+        'grade_question': 'Noter la question',
+        'save_grade': 'Enregistrer la note',
+        'grade_updated_success': 'Note mise à jour avec succès !',
+        'reference_answer': 'Réponse attendue / Corrigé',
+        'student_answer': 'Réponse de l\'élève',
+        'no_answer_provided': 'Aucune réponse fournie.',
     }
 }
 

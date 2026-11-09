@@ -36,7 +36,7 @@ A short quiz for students.
 - [ ] Rust
 
 ### Explain what an algorithm is.
-- [t]
+- [t] A finite sequence of well-defined instructions.
 """
         quiz = parse_markdown_to_quiz(md, author_id=user.id, code='TEST1234')
         db.session.add(quiz)
@@ -64,6 +64,7 @@ A short quiz for students.
         q3 = quiz.questions[2]
         assert q3.question_type == 'text'
         assert q3.max_score == 1.0  # default score 1
+        assert q3.answer_key == "A finite sequence of well-defined instructions."
 
 def test_scoring_single_choice(test_app):
     app, user = test_app

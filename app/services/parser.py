@@ -150,6 +150,7 @@ def parse_markdown_to_quiz(markdown_text, author_id, code=None):
                     'question_type': 'choice',
                     'max_score': 1.0,
                     'hint': '',
+                    'answer_key': '',
                     'choices': []
                 }
                 idx += 1
@@ -164,6 +165,8 @@ def parse_markdown_to_quiz(markdown_text, author_id, code=None):
                     text = choice_match.group(2).strip()
                     if mark == 't':
                         current_question['question_type'] = 'text'
+                        if text:
+                            current_question['answer_key'] = text
                     else:
                         is_correct = (mark == 'x')
                         current_question['choices'].append({
@@ -214,11 +217,11 @@ def parse_markdown_to_quiz(markdown_text, author_id, code=None):
                 question_type=q_data['question_type'],
                 max_score=q_data['max_score'],
                 hint=q_data['hint'],
+                answer_key=q_data['answer_key'],
                 order_index=q_order,
                 section=section,
                 quiz=quiz
             )
-            quiz.questions.append(question)
 
             for c_idx, c_data in enumerate(q_data['choices']):
                 choice = Choice(

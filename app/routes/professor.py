@@ -78,6 +78,32 @@ def view_submission_detail(submission_id):
         abort(403)
     return render_template('professor/submission_detail.html', submission=submission)
 
+@professor_bp.route('/submission/<int:submission_id>/grade', methods=['POST'])
+def grade_submission(submission_id):
+    submission = Submission.query.get_or_404(submission_id)
+    if submission.quiz.author_id != current_user.id:
+        abort(403)
+
+    for ans in submission.answers:
+        if ans.question.question_type == 'text':
+            score_key = f'score_{ans.id}'
+            if score_key in request.form:
+                try:
+                    val = float(request.form[score_key])
+                    max_sc = float(ans.question.max_score if ans.question.max_score is not None else 1.0)
+                    ans.score_awarded = max(0.0, min(max_sc, round(val, 2)))
+                    ans.is_graded = True
+                except (ValueError, TypeError):
+                    pass
+
+    # Recalculate submission total score
+    total = sum(a.score_awarded for a in submission.answers)
+    submission.total_score = round(total, 2)
+    db.session.commit()
+
+    flash(_('grade_updated_success'), 'success')
+    return redirect(url_for('professor.view_submission_detail', submission_id=submission.id))
+
 @professor_bp.route('/quiz/<int:quiz_id>/export-csv')
 def export_csv(quiz_id):
     quiz = Quiz.query.filter_by(id=quiz_id, author_id=current_user.id).first_or_404()

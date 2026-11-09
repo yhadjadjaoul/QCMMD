@@ -74,6 +74,7 @@ class Question(db.Model):
     question_type = db.Column(db.String(20), default='choice')  # 'choice' or 'text'
     max_score = db.Column(db.Float, default=1.0)
     hint = db.Column(db.Text, default='')
+    answer_key = db.Column(db.Text, default='')  # Reference/sample answer for text questions
     order_index = db.Column(db.Integer, default=0)
 
     choices = db.relationship('Choice', backref='question', lazy=True, cascade='all, delete-orphan', order_by='Choice.order_index')
@@ -112,3 +113,4 @@ class AnswerSubmission(db.Model):
     selected_choice_ids = db.Column(db.String(255), default='')  # comma-separated IDs of selected choices
     text_response = db.Column(db.Text, default='')
     score_awarded = db.Column(db.Float, default=0.0)
+    is_graded = db.Column(db.Boolean, default=False)  # True once graded (automatic for choice, manual for text)
