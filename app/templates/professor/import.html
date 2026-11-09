@@ -13,6 +13,15 @@
                 You can upload a <code>.md</code> file or paste markdown syntax directly below.
             </p>
 
+            <div class="alert alert-info py-2 px-3 mb-3 small">
+                <strong>Syntax guide:</strong>
+                <ul class="mb-0 ps-3">
+                    <li><strong>Case 1 (Single answer)</strong>: Uses radio buttons. Tag: <code>[case: 1]</code> (or automatically detected if 1 correct option).</li>
+                    <li><strong>Case 2 (Multiple answers)</strong>: Uses checkboxes. Tag: <code>[case: 2]</code> (or automatically detected if &gt;1 correct options).</li>
+                    <li><strong>Points & Hints</strong>: <code>[score: X]</code>, <code>&gt; Hint: ...</code> or <code>[hint: ...]</code>.</li>
+                </ul>
+            </div>
+
             <form method="POST" action="{{ url_for('professor.import_qcm') }}" enctype="multipart/form-data">
                 <div class="mb-4">
                     <label class="form-label fw-semibold">{{ _('upload_file') }}</label>
@@ -27,16 +36,22 @@
 
                 <div class="mb-4">
                     <label class="form-label fw-semibold">{{ _('markdown_source') }}</label>
-                    <textarea name="markdown_text" class="form-control font-monospace" rows="12" placeholder="# Title of the QCM
+                    <textarea name="markdown_text" class="form-control font-monospace" rows="14" placeholder="# Title of the QCM
 
 ## Part 1
-### Question 1 [score: 2]
+### Question 1 (Single choice) [score: 2] [case: 1]
 > Hint: Helpful hint for students
 - [x] Correct answer
 - [ ] Incorrect answer
 - [ ] Incorrect answer 2
 
-### Question 2
+### Question 2 (Multiple choices) [score: 3] [case: 2]
+> Hint: Multiple options are valid
+- [x] First correct answer
+- [x] Second correct answer
+- [ ] Incorrect option
+
+### Question 3
 Explain your solution.
 - [t]"></textarea>
                 </div>

@@ -22,6 +22,7 @@ def parse_markdown_to_quiz(markdown_text, author_id, code=None):
         Question body / subtext (supports LaTeX, markdown, code blocks, images)
         [score: 2] or [points: 2] or score code in question (defaults to 1.0)
         [hint: Some helpful hint for student] or > Hint: Some helpful hint
+        [case: 1] / [case: 2] or [type: single] / [type: multiple] (case 1: radio, case 2: checkbox)
         - [x] Correct choice
         - [ ] Incorrect choice
         - [t] Text answer question
@@ -84,6 +85,22 @@ def parse_markdown_to_quiz(markdown_text, author_id, code=None):
                 current_question['title'] = re.sub(r'\[(?:score|points):\s*([0-9]+(?:\.[0-9]+)?)\]', '', current_question['title'], flags=re.IGNORECASE).strip()
                 subtext = re.sub(r'\[(?:score|points):\s*([0-9]+(?:\.[0-9]+)?)\]', '', subtext, flags=re.IGNORECASE).strip()
 
+            # Check for case/type tags: [case: 1], [case: 2], [case: one], [case: two], [case: multiple], [case: single],
+            # [type: single], [type: multiple], [type: radio], [type: checkbox], [single], [multiple], [radio], [checkbox]
+            case_pattern = r'\[(?:case|type):\s*(1|2|one|two|single|multiple|radio|checkbox)\]|\[(single|multiple|radio|checkbox)\]'
+            case_match = re.search(case_pattern, current_question['title'], re.IGNORECASE)
+            if not case_match:
+                case_match = re.search(case_pattern, subtext, re.IGNORECASE)
+            if case_match:
+                val = (case_match.group(1) or case_match.group(2)).strip().lower()
+                if val in ('2', 'two', 'multiple', 'checkbox'):
+                    current_question['choice_type'] = 'multiple'
+                elif val in ('1', 'one', 'single', 'radio'):
+                    current_question['choice_type'] = 'single'
+                # remove tag from title/subtext
+                current_question['title'] = re.sub(case_pattern, '', current_question['title'], flags=re.IGNORECASE).strip()
+                subtext = re.sub(case_pattern, '', subtext, flags=re.IGNORECASE).strip()
+
             # Check for [hint: ...] or > Hint: ... or Hint: ...
             hint_match = re.search(r'\[hint:\s*([^\]]+)\]', subtext, re.IGNORECASE)
             if hint_match:
@@ -99,6 +116,11 @@ def parse_markdown_to_quiz(markdown_text, author_id, code=None):
                     if hint_simple:
                         current_question['hint'] = hint_simple.group(1).strip()
                         subtext = re.sub(r'(?:^|\n)(?:Hint|Indice)\s*:\s*(.+)$', '', subtext, flags=re.IGNORECASE | re.MULTILINE).strip()
+
+            # If choice_type is auto, infer from number of correct choices
+            if current_question['choice_type'] == 'auto' and current_question['choices']:
+                correct_count = sum(1 for c in current_question['choices'] if c['is_correct'])
+                current_question['choice_type'] = 'multiple' if correct_count > 1 else 'single'
 
             current_question['subtext'] = subtext
             current_section['questions'].append(current_question)
@@ -148,6 +170,7 @@ def parse_markdown_to_quiz(markdown_text, author_id, code=None):
                     'title': q_title,
                     'subtext_lines': [],
                     'question_type': 'choice',
+                    'choice_type': 'auto',
                     'max_score': 1.0,
                     'hint': '',
                     'choices': []
@@ -212,6 +235,7 @@ def parse_markdown_to_quiz(markdown_text, author_id, code=None):
                 title=q_data['title'],
                 subtext=q_data['subtext'],
                 question_type=q_data['question_type'],
+                choice_type=q_data.get('choice_type', 'auto'),
                 max_score=q_data['max_score'],
                 hint=q_data['hint'],
                 order_index=q_order,

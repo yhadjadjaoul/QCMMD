@@ -18,7 +18,7 @@ def app_and_client():
         db.session.add_all([prof, student])
         db.session.commit()
 
-        # Add a sample Quiz
+        # Add a sample Quiz with single choice and multi choice
         md = """# Physics 101
 ## Mechanics
 ### What is the SI unit of Force? [score: 2]
@@ -26,6 +26,11 @@ def app_and_client():
 - [x] Newton
 - [ ] Joule
 - [ ] Pascal
+
+### Select vector quantities [score: 2]
+- [x] Velocity
+- [ ] Speed
+- [x] Acceleration
 """
         quiz = parse_markdown_to_quiz(md, author_id=prof.id, code='PHYS123')
         db.session.add(quiz)
@@ -43,20 +48,30 @@ def test_student_flow(app_and_client):
     # Access take quiz page
     res_page = client.get('/student/quiz/PHYS123')
     assert res_page.status_code == 200
-    assert b"Physics 101" in res_page.data
-    assert b"What is the SI unit of Force?" in res_page.data
+    html = res_page.data.decode('utf-8')
+    assert "Physics 101" in html
+    assert "What is the SI unit of Force?" in html
+    assert "Single choice" in html
+    assert "Multiple choices" in html
+    # Verify input types: radio for Q1, checkbox for Q2
+    assert 'type="radio"' in html
+    assert 'type="checkbox"' in html
 
     with app.app_context():
         quiz = Quiz.query.filter_by(code='PHYS123').first()
-        q = quiz.questions[0]
-        correct_c = [c for c in q.choices if c.is_correct][0]
-        correct_cid = correct_c.id
+        q1 = quiz.questions[0]
+        correct_c1 = [c for c in q1.choices if c.is_correct][0]
+        correct_cid1 = correct_c1.id
 
-    # Submit correct answer
+        q2 = quiz.questions[1]
+        correct_cids2 = [str(c.id) for c in q2.choices if c.is_correct]
+
+    # Submit correct answers for both questions
     res_submit = client.post('/student/quiz/PHYS123/submit', data={
-        f'q_{q.id}': [str(correct_cid)]
+        f'q_{q1.id}': [str(correct_cid1)],
+        f'q_{q2.id}': correct_cids2
     }, follow_redirects=True)
 
     assert res_submit.status_code == 200
-    assert b"2.0" in res_submit.data  # full score 2.0 awarded
+    assert b"4.0" in res_submit.data  # full score 4.0 awarded
     assert b"Named after Sir Isaac" in res_submit.data  # Hint visible

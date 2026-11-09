@@ -72,12 +72,27 @@ class Question(db.Model):
     title = db.Column(db.String(255), nullable=False)
     subtext = db.Column(db.Text, default='')
     question_type = db.Column(db.String(20), default='choice')  # 'choice' or 'text'
+    choice_type = db.Column(db.String(20), default='auto')  # 'single' (case 1), 'multiple' (case 2), or 'auto'
     max_score = db.Column(db.Float, default=1.0)
     hint = db.Column(db.Text, default='')
     order_index = db.Column(db.Integer, default=0)
 
     choices = db.relationship('Choice', backref='question', lazy=True, cascade='all, delete-orphan', order_by='Choice.order_index')
     answer_submissions = db.relationship('AnswerSubmission', backref='question', lazy=True, cascade='all, delete-orphan')
+
+    @property
+    def is_multiple_choice(self):
+        """
+        Returns True if question needs multiple answers (case 2 -> checkboxes),
+        False if question needs one answer (case 1 -> radio buttons).
+        """
+        if self.choice_type in ('multiple', 'checkbox', 'case2', 'case_2', 'case 2'):
+            return True
+        if self.choice_type in ('single', 'radio', 'case1', 'case_1', 'case 1'):
+            return False
+        # If auto, determine from number of correct choices
+        correct_count = sum(1 for c in self.choices if c.is_correct)
+        return correct_count > 1
 
 
 class Choice(db.Model):
