@@ -6,6 +6,9 @@ A web platform for Multiple Choice Questions (QCM) inspired by [qcm_alchemy](htt
 - **User Authentication**: Student and Professor roles with password hashing and session management.
 - **Bilingual Support**: English and French (EN / FR) interface switchable at any time.
 - **Markdown Import**: Create QCMs by uploading `.md` files or copying and pasting markdown source.
+- **Single and Multi-Choice Input**:
+  - **Case 1 (Single answer)**: Indicated by radio buttons (`[case: 1]` or auto-detected when 1 option is correct).
+  - **Case 2 (Multiple answers)**: Indicated by check boxes (`[case: 2]` or auto-detected when multiple options are correct).
 - **Hints and Solution Guidance**: Questions support hints (`> Hint: ...` or `[hint: ...]`) for students.
 - **Custom Question Scores**: Score codes per question (`[score: X]` or `[points: X]`, default 1.0).
 - **Bounded Scoring**: Question scores vary between 0.0 and max score. Penalties for wrong selections are deducted but bounded at 0.0 minimum.
