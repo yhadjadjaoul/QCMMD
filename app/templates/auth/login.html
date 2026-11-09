@@ -18,6 +18,19 @@
                     <label class="form-label fw-semibold">{{ _('password') }}</label>
                     <input type="password" name="password" class="form-control" placeholder="••••••••" required>
                 </div>
+
+                <!-- Captcha Section -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">{{ _('captcha') }}</label>
+                    <div class="d-flex align-items-center mb-2">
+                        <img id="captchaImage" src="{{ url_for('auth.get_captcha') }}" alt="Captcha" class="border rounded me-2" style="height: 50px;">
+                        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('captchaImage').src = '{{ url_for('auth.get_captcha') }}?' + Math.random();" title="{{ _('refresh_captcha') }}">
+                            <i class="bi bi-arrow-clockwise"></i>
+                        </button>
+                    </div>
+                    <input type="text" name="captcha" class="form-control text-uppercase" placeholder="{{ _('enter_captcha') }}" autocomplete="off" required>
+                </div>
+
                 <button type="submit" class="btn btn-primary w-100 py-2 fw-semibold">
                     {{ _('login') }}
                 </button>

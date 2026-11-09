@@ -38,7 +38,7 @@ def test_student_flow(app_and_client):
     app, client = app_and_client
 
     # Log in as student
-    client.post('/auth/login', data={'email': 'student1@test.com', 'password': 'pass123'}, follow_redirects=True)
+    client.post('/auth/login', data={'email': 'student1@test.com', 'password': 'pass123', 'captcha': 'TEST_CAPTCHA'}, follow_redirects=True)
 
     # Access take quiz page
     res_page = client.get('/student/quiz/PHYS123')
