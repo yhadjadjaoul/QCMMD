@@ -36,7 +36,7 @@ A short quiz for students.
 - [ ] Rust
 
 ### Explain what an algorithm is.
-- [t]
+- [t] A finite sequence of well-defined instructions.
 """
         quiz = parse_markdown_to_quiz(md, author_id=user.id, code='TEST1234')
         db.session.add(quiz)
@@ -51,6 +51,8 @@ A short quiz for students.
         assert q1.title == "Calculate 2 + 2"
         assert q1.max_score == 2.0
         assert q1.hint == "It's an even number."
+        assert q1.is_multiple_choice is False
+        assert q1.choice_type == 'single'
         assert len(q1.choices) == 3
         assert [c.is_correct for c in q1.choices] == [True, False, False]
 
@@ -58,12 +60,15 @@ A short quiz for students.
         assert q2.title == "Which of these are dynamic languages?"
         assert q2.max_score == 3.0
         assert "Python and Ruby" in q2.hint
+        assert q2.is_multiple_choice is True
+        assert q2.choice_type == 'multiple'
         assert len(q2.choices) == 4
         assert [c.is_correct for c in q2.choices] == [True, False, True, False]
 
         q3 = quiz.questions[2]
         assert q3.question_type == 'text'
         assert q3.max_score == 1.0  # default score 1
+        assert q3.answer_key == "A finite sequence of well-defined instructions."
 
 def test_scoring_single_choice(test_app):
     app, user = test_app
@@ -125,3 +130,49 @@ def test_scoring_multiple_choice_and_boundary(test_app):
 
         # 0 correct chosen, 2 wrong chosen: raw -2.0, bounded to min 0.0
         assert calculate_question_score(q, wrong_ids) == 0.0
+
+def test_markdown_parsing_case_tags(test_app):
+    app, user = test_app
+    with app.app_context():
+        md = """# Tagged Quiz
+## Section 1
+### Question Case One [score: 1] [case: 1]
+- [x] Option 1
+- [ ] Option 2
+
+### Question Case Two [case: 2]
+- [x] Option A
+- [x] Option B
+- [ ] Option C
+
+### Question Case Words [case: two]
+- [x] Option X
+- [ ] Option Y
+
+### Question Type Radio [type: radio]
+- [x] Radio 1
+- [ ] Radio 2
+"""
+        quiz = parse_markdown_to_quiz(md, author_id=user.id)
+        db.session.add(quiz)
+        db.session.commit()
+
+        q1 = quiz.questions[0]
+        assert q1.title == "Question Case One"
+        assert q1.choice_type == 'single'
+        assert q1.is_multiple_choice is False
+
+        q2 = quiz.questions[1]
+        assert q2.title == "Question Case Two"
+        assert q2.choice_type == 'multiple'
+        assert q2.is_multiple_choice is True
+
+        q3 = quiz.questions[2]
+        assert q3.title == "Question Case Words"
+        assert q3.choice_type == 'multiple'
+        assert q3.is_multiple_choice is True
+
+        q4 = quiz.questions[3]
+        assert q4.title == "Question Type Radio"
+        assert q4.choice_type == 'single'
+        assert q4.is_multiple_choice is False

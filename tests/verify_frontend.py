@@ -1,7 +1,37 @@
 import time
 from playwright.sync_api import sync_playwright
+from app import create_app, db
+from app.models import User, StudentAccessCode
+
+def setup_demo_users():
+    app = create_app()
+    with app.app_context():
+        # Clean users if any
+        User.query.delete()
+        StudentAccessCode.query.delete()
+        db.session.commit()
+
+        # Create Professor
+        prof = User(username="prof_demo", email="prof@demo.com", role="professor")
+        prof.set_password("password123")
+        db.session.add(prof)
+        db.session.commit()
+
+        # Create Student
+        code = StudentAccessCode(code="STU-DEMO1234", created_by_id=prof.id, is_used=True)
+        db.session.add(code)
+        db.session.flush()
+
+        student = User(username="student_demo", email="student@demo.com", role="student")
+        student.set_password("password123")
+        db.session.add(student)
+        db.session.flush()
+        code.used_by_id = student.id
+        db.session.commit()
 
 def run():
+    setup_demo_users()
+
     with sync_playwright() as p:
         browser = p.chromium.launch(headless=True)
         context = browser.new_context(viewport={"width": 1280, "height": 800})
@@ -22,6 +52,7 @@ def run():
         # 2. Login as Professor
         page.fill('input[name="email"]', "prof@demo.com")
         page.fill('input[name="password"]', "password123")
+        page.fill('input[name="captcha"]', "TEST_CAPTCHA")
         page.click('button[type="submit"]')
         page.wait_for_url("**/professor/dashboard")
 
@@ -31,18 +62,24 @@ def run():
 Un QCM complet pour évaluer les compétences.
 
 ## Mathématiques
-### Calculer $2^3$ [score: 2]
+### Calculer $2^3$ [score: 2] [case: 1]
 > Hint: 2 multiplié par lui-même 3 fois.
 - [x] 8
 - [ ] 6
 - [ ] 4
 
 ## Programmation Python
-### Que produit l'instruction `len([10, 20, 30])` ? [score: 1]
+### Que produit l'instruction `len([10, 20, 30])` ? [score: 1] [case: 1]
 [hint: Compter le nombre d'éléments dans la liste]
 - [x] 3
 - [ ] 2
 - [ ] 4
+
+### Quelles propositions sont des nombres pairs ? [score: 2] [case: 2]
+[hint: Divisible par 2]
+- [x] 2
+- [ ] 3
+- [x] 4
 
 ### Écrire une boucle for en Python
 - [t]
@@ -50,6 +87,10 @@ Un QCM complet pour évaluer les compétences.
         page.fill('textarea[name="markdown_text"]', qcm_content)
         page.click('button[type="submit"]')
         page.wait_for_url("**/professor/dashboard")
+
+        # Generate a student code from dashboard
+        page.click('button:has-text("Generate Access Code(s)")')
+        page.wait_for_timeout(500)
 
         # Capture Professor Dashboard Screenshot
         page.screenshot(path="tests/professor_dashboard.png")
@@ -65,6 +106,7 @@ Un QCM complet pour évaluer les compétences.
         # 4. Login as Student
         page.fill('input[name="email"]', "student@demo.com")
         page.fill('input[name="password"]', "password123")
+        page.fill('input[name="captcha"]', "TEST_CAPTCHA")
         page.click('button[type="submit"]')
         page.wait_for_url("**/student/dashboard")
 
@@ -74,7 +116,14 @@ Un QCM complet pour évaluer les compétences.
         page.wait_for_url(f"**/student/quiz/{qcm_code}")
 
         # Fill answers
-        # Select first option for Q1 (8)
+        # Verify radio button exists for single choice questions
+        assert page.locator('input[type="radio"]').count() > 0
+        # Verify checkbox exists for multiple choice questions
+        assert page.locator('input[type="checkbox"]').count() > 0
+
+        # Select first radio option for Q1 (8)
+        page.locator('input[type="radio"]').first.check()
+        # Select first checkbox for Q3 (2)
         page.locator('input[type="checkbox"]').first.check()
         # Answer text question
         page.fill('textarea', "for i in range(5): print(i)")

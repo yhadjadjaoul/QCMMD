@@ -34,9 +34,22 @@
                                 <h5 class="fw-bold mb-0">
                                     <span class="text-primary me-2">#{{ q.order_index }}</span>{{ q.title }}
                                 </h5>
-                                <span class="badge bg-light text-dark border">
-                                    {{ q.max_score }} {{ _('points') }}
-                                </span>
+                                <div class="d-flex gap-2 align-items-center">
+                                    {% if q.question_type == 'choice' %}
+                                        {% if q.is_multiple_choice %}
+                                        <span class="badge bg-secondary-subtle text-secondary border">
+                                            <i class="bi bi-check2-square me-1"></i>{{ _('multiple_choice_hint') }}
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-primary-subtle text-primary border">
+                                            <i class="bi bi-ui-radios me-1"></i>{{ _('single_choice_hint') }}
+                                        </span>
+                                        {% endif %}
+                                    {% endif %}
+                                    <span class="badge bg-light text-dark border">
+                                        {{ q.max_score }} {{ _('points') }}
+                                    </span>
+                                </div>
                             </div>
 
                             {% if q_item.html_subtext %}
@@ -47,9 +60,10 @@
 
                             {% if q.question_type == 'choice' %}
                                 <div class="choices-container">
+                                    {% set input_type = 'checkbox' if q.is_multiple_choice else 'radio' %}
                                     {% for choice in q_item.choices %}
                                     <div class="form-check p-2 rounded hover-bg border mb-2 ps-4">
-                                        <input class="form-check-input" type="checkbox" name="q_{{ q.id }}" value="{{ choice.id }}" id="choice_{{ choice.id }}">
+                                        <input class="form-check-input" type="{{ input_type }}" name="q_{{ q.id }}" value="{{ choice.id }}" id="choice_{{ choice.id }}">
                                         <label class="form-check-label w-100 cursor-pointer" for="choice_{{ choice.id }}">
                                             {{ choice.text }}
                                         </label>

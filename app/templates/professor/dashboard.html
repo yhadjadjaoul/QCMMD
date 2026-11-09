@@ -8,13 +8,23 @@
         <h2 class="fw-bold mb-1">{{ _('my_qcms') }}</h2>
         <p class="text-muted">{{ _('welcome') }}, {{ current_user.username }}!</p>
     </div>
-    <a href="{{ url_for('professor.import_qcm') }}" class="btn btn-primary">
-        <i class="bi bi-cloud-arrow-up-fill me-1"></i>{{ _('create_qcm') }}
-    </a>
+    <div class="d-flex gap-2">
+        <a href="#studentCodesSection" class="btn btn-outline-primary">
+            <i class="bi bi-key-fill me-1"></i>{{ _('student_access_codes') }}
+        </a>
+        <a href="{{ url_for('professor.import_qcm') }}" class="btn btn-primary">
+            <i class="bi bi-cloud-arrow-up-fill me-1"></i>{{ _('create_qcm') }}
+        </a>
+    </div>
 </div>
 
 {% if qcms %}
-<div class="card main-card overflow-hidden">
+<div class="card main-card overflow-hidden mb-5">
+    <div class="card-header bg-white py-3">
+        <h5 class="card-title mb-0 fw-bold text-dark">
+            <i class="bi bi-journal-check me-2"></i>{{ _('my_qcms') }}
+        </h5>
+    </div>
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
@@ -70,7 +80,7 @@
     </div>
 </div>
 {% else %}
-<div class="card main-card p-5 text-center">
+<div class="card main-card p-5 text-center mb-5">
     <div class="mb-3">
         <i class="bi bi-file-earmark-text text-muted" style="font-size: 3rem;"></i>
     </div>
@@ -83,4 +93,74 @@
     </div>
 </div>
 {% endif %}
+
+<!-- Student Access Codes Section -->
+<div id="studentCodesSection" class="card main-card mb-4">
+    <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h5 class="card-title mb-0 fw-bold text-dark">
+            <i class="bi bi-shield-lock-fill me-2 text-primary"></i>{{ _('student_access_codes') }}
+        </h5>
+        <form method="POST" action="{{ url_for('professor.generate_student_code') }}" class="d-flex align-items-center gap-2">
+            <input type="number" name="count" class="form-control form-control-sm" value="1" min="1" max="50" style="width: 70px;">
+            <button type="submit" class="btn btn-sm btn-primary">
+                <i class="bi bi-plus-lg me-1"></i>{{ _('generate_student_code') }}
+            </button>
+        </form>
+    </div>
+    <div class="card-body p-0">
+        {% if student_codes %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>{{ _('code') }}</th>
+                        <th>{{ _('status') }}</th>
+                        <th>{{ _('used_by') }}</th>
+                        <th>{{ _('created_at') }}</th>
+                        <th class="text-end">{{ _('actions') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for sc in student_codes %}
+                    <tr>
+                        <td>
+                            <code class="fw-bold fs-6 text-primary">{{ sc.code }}</code>
+                        </td>
+                        <td>
+                            {% if sc.is_used %}
+                            <span class="badge bg-secondary">{{ _('used') }}</span>
+                            {% else %}
+                            <span class="badge bg-success">{{ _('unused') }}</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if sc.used_by %}
+                            <strong>{{ sc.used_by.username }}</strong> ({{ sc.used_by.email }})
+                            {% else %}
+                            <span class="text-muted">&mdash;</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <small class="text-muted">{{ sc.created_at.strftime('%Y-%m-%d %H:%M') }}</small>
+                        </td>
+                        <td class="text-end">
+                            <form method="POST" action="{{ url_for('professor.delete_student_code', code_id=sc.id) }}" class="d-inline" onsubmit="return confirm('Delete this code?');">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="{{ _('delete') }}">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="p-4 text-center text-muted">
+            <i class="bi bi-ticket-perforated fs-2 d-block mb-2"></i>
+            No student access codes generated yet. Generate codes to give to your students so they can create an account and connect.
+        </div>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}
