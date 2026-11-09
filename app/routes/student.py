@@ -103,7 +103,8 @@ def submit_quiz(code):
                 submission_id=submission.id,
                 question_id=q.id,
                 selected_choice_ids=','.join(selected_ids),
-                score_awarded=score
+                score_awarded=score,
+                is_graded=True
             )
             total_awarded += score
             db.session.add(ans)
@@ -114,7 +115,8 @@ def submit_quiz(code):
                 submission_id=submission.id,
                 question_id=q.id,
                 text_response=text_resp,
-                score_awarded=score
+                score_awarded=score,
+                is_graded=False
             )
             db.session.add(ans)
 
